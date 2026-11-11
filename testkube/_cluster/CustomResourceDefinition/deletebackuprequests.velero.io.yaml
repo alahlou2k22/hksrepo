@@ -1,0 +1,79 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: deletebackuprequests.velero.io
+  labels:
+    component: velero
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+spec:
+  group: velero.io
+  names:
+    plural: deletebackuprequests
+    singular: deletebackuprequest
+    kind: DeleteBackupRequest
+    listKind: DeleteBackupRequestList
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: DeleteBackupRequest is a request to delete one or more backups.
+        type: object
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DeleteBackupRequestSpec is the specification for which backups to delete.
+            type: object
+            required:
+            - backupName
+            properties:
+              backupName:
+                type: string
+          status:
+            description: DeleteBackupRequestStatus is the current status of a DeleteBackupRequest.
+            type: object
+            properties:
+              errors:
+                description: Errors contains any errors that were encountered during the deletion process.
+                type: array
+                items:
+                  type: string
+                nullable: true
+              phase:
+                description: Phase is the current state of the DeleteBackupRequest.
+                type: string
+                enum:
+                - New
+                - InProgress
+                - Processed
+    subresources: {}
+    additionalPrinterColumns:
+    - name: BackupName
+      type: string
+      description: The name of the backup to be deleted
+      jsonPath: .spec.backupName
+    - name: Status
+      type: string
+      description: The status of the deletion request
+      jsonPath: .status.phase
+  conversion:
+    strategy: None

@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rook-ceph-mgr-pdb
+  namespace: rook-ceph
+spec:
+  selector:
+    matchLabels:
+      app: rook-ceph-mgr
+  maxUnavailable: 1

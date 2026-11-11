@@ -1,0 +1,61 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rbd-csi-nodeplugin
+  labels:
+    app.kubernetes.io/name: rook-ceph
+    app.kubernetes.io/part-of: rook-ceph-operator
+    operator: rook
+    storage-backend: ceph
+rules:
+- verbs:
+  - get
+  - list
+  apiGroups:
+  - ''
+  resources:
+  - secrets
+- verbs:
+  - get
+  - list
+  apiGroups:
+  - ''
+  resources:
+  - persistentvolumes
+- verbs:
+  - get
+  - list
+  apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments
+- verbs:
+  - get
+  apiGroups:
+  - ''
+  resources:
+  - configmaps
+- verbs:
+  - get
+  apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+- verbs:
+  - create
+  apiGroups:
+  - ''
+  resources:
+  - serviceaccounts/token
+- verbs:
+  - get
+  apiGroups:
+  - ''
+  resources:
+  - nodes
+- verbs:
+  - create
+  apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews

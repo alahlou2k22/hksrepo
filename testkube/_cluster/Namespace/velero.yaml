@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero
+  labels:
+    app.kubernetes.io/managed-by: hks-velero
+    kubernetes.io/metadata.name: velero
+spec:
+  finalizers:
+  - kubernetes

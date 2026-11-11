@@ -1,0 +1,23 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: system::leader-locking-kube-controller-manager
+  namespace: kube-system
+  labels:
+    kubernetes.io/bootstrapping: rbac-defaults
+  annotations:
+    rbac.authorization.kubernetes.io/autoupdate: 'true'
+subjects:
+- kind: User
+  apiGroup: rbac.authorization.k8s.io
+  name: system:kube-controller-manager
+- kind: ServiceAccount
+  name: kube-controller-manager
+  namespace: kube-system
+- kind: ServiceAccount
+  name: leader-election-controller
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: system::leader-locking-kube-controller-manager

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rook-ceph-pdbstatemap
+  namespace: rook-ceph
+data:
+  draining-failure-domain: ''
+  set-no-out: ''

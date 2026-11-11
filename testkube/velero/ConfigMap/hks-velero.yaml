@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hks-velero
+  namespace: velero
+data:
+  gitHistory: '[{"at":1794363203336,"why":"started by hit-ala","ok":true,"result":"422 objects, 422 new, 0 changed, 0 removed, commit fd37344e47","commit":"fd37344e47","files":422,"added":422,"changed":0,"removed":0}]'
+  gitLast: '1794363203317'
+  gitNamespaces: argocd,calico-system,default,kube-system,logging,monitoring,rook-ceph,tigera-operator,velero
+  gitOk: 'true'
+  gitResult: 422 objects, 422 new, 0 changed, 0 removed, commit fd37344e47
+  mode: installed

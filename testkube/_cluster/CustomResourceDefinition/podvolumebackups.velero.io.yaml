@@ -1,0 +1,248 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: podvolumebackups.velero.io
+  labels:
+    component: velero
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+spec:
+  group: velero.io
+  names:
+    plural: podvolumebackups
+    singular: podvolumebackup
+    kind: PodVolumeBackup
+    listKind: PodVolumeBackupList
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: PodVolumeBackupSpec is the specification for a PodVolumeBackup.
+            type: object
+            required:
+            - backupStorageLocation
+            - node
+            - pod
+            - repoIdentifier
+            - volume
+            properties:
+              backupStorageLocation:
+                description: |-
+                  BackupStorageLocation is the name of the backup storage location
+                  where the backup repository is stored.
+                type: string
+              cancel:
+                description: |-
+                  Cancel indicates request to cancel the ongoing PodVolumeBackup. It can be set
+                  when the PodVolumeBackup is in InProgress phase
+                type: boolean
+              node:
+                description: Node is the name of the node that the Pod is running on.
+                type: string
+              pod:
+                description: Pod is a reference to the pod containing the volume to be backed up.
+                type: object
+                properties:
+                  apiVersion:
+                    description: API version of the referent.
+                    type: string
+                  fieldPath:
+                    description: |-
+                      If referring to a piece of an object instead of an entire object, this string
+                      should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                      For example, if the object reference is to a container within a pod, this would take on a value like:
+                      "spec.containers{name}" (where "name" refers to the name of the container that triggered
+                      the event) or if no container name is specified "spec.containers[2]" (container with
+                      index 2 in this pod). This syntax is chosen only to have some well-defined way of
+                      referencing a part of an object.
+                    type: string
+                  kind:
+                    description: |-
+                      Kind of the referent.
+                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+                    type: string
+                  name:
+                    description: |-
+                      Name of the referent.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                  namespace:
+                    description: |-
+                      Namespace of the referent.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+                    type: string
+                  resourceVersion:
+                    description: |-
+                      Specific resourceVersion to which this reference is made, if any.
+                      More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
+                    type: string
+                  uid:
+                    description: |-
+                      UID of the referent.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
+                    type: string
+                x-kubernetes-map-type: atomic
+              repoIdentifier:
+                description: RepoIdentifier is the backup repository identifier.
+                type: string
+              tags:
+                description: |-
+                  Tags are a map of key-value pairs that should be applied to the
+                  volume backup as tags.
+                type: object
+                additionalProperties:
+                  type: string
+              uploaderSettings:
+                description: |-
+                  UploaderSettings are a map of key-value pairs that should be applied to the
+                  uploader configuration.
+                type: object
+                additionalProperties:
+                  type: string
+                nullable: true
+              uploaderType:
+                description: UploaderType is the type of the uploader to handle the data transfer.
+                type: string
+                enum:
+                - kopia
+                - restic
+                - ''
+              volume:
+                description: |-
+                  Volume is the name of the volume within the Pod to be backed
+                  up.
+                type: string
+          status:
+            description: PodVolumeBackupStatus is the current status of a PodVolumeBackup.
+            type: object
+            properties:
+              acceptedTimestamp:
+                description: |-
+                  AcceptedTimestamp records the time the pod volume backup is to be prepared.
+                  The server's time is used for AcceptedTimestamp
+                type: string
+                format: date-time
+                nullable: true
+              completionTimestamp:
+                description: |-
+                  CompletionTimestamp records the time a backup was completed.
+                  Completion time is recorded even on failed backups.
+                  Completion time is recorded before uploading the backup object.
+                  The server's time is used for CompletionTimestamps
+                type: string
+                format: date-time
+                nullable: true
+              incrementalBytes:
+                description: IncrementalBytes holds the number of bytes new or changed since the last backup
+                type: integer
+                format: int64
+              message:
+                description: Message is a message about the pod volume backup's status.
+                type: string
+              path:
+                description: Path is the full path within the controller pod being backed up.
+                type: string
+              phase:
+                description: Phase is the current state of the PodVolumeBackup.
+                type: string
+                enum:
+                - New
+                - Accepted
+                - Prepared
+                - InProgress
+                - Canceling
+                - Canceled
+                - Completed
+                - Failed
+              progress:
+                description: |-
+                  Progress holds the total number of bytes of the volume and the current
+                  number of backed up bytes. This can be used to display progress information
+                  about the backup operation.
+                type: object
+                properties:
+                  bytesDone:
+                    type: integer
+                    format: int64
+                  totalBytes:
+                    type: integer
+                    format: int64
+              snapshotID:
+                description: SnapshotID is the identifier for the snapshot of the pod volume.
+                type: string
+              startTimestamp:
+                description: |-
+                  StartTimestamp records the time a backup was started.
+                  Separate from CreationTimestamp, since that value changes
+                  on restores.
+                  The server's time is used for StartTimestamps
+                type: string
+                format: date-time
+                nullable: true
+    subresources: {}
+    additionalPrinterColumns:
+    - name: Status
+      type: string
+      description: PodVolumeBackup status such as New/InProgress
+      jsonPath: .status.phase
+    - name: Started
+      type: date
+      description: Time duration since this PodVolumeBackup was started
+      jsonPath: .status.startTimestamp
+    - name: Bytes Done
+      type: integer
+      format: int64
+      description: Completed bytes
+      jsonPath: .status.progress.bytesDone
+    - name: Total Bytes
+      type: integer
+      format: int64
+      description: Total bytes
+      jsonPath: .status.progress.totalBytes
+    - name: Incremental Bytes
+      type: integer
+      format: int64
+      description: Incremental bytes
+      priority: 10
+      jsonPath: .status.incrementalBytes
+    - name: Storage Location
+      type: string
+      description: Name of the Backup Storage Location where this backup should be stored
+      jsonPath: .spec.backupStorageLocation
+    - name: Age
+      type: date
+      description: Time duration since this PodVolumeBackup was created
+      jsonPath: .metadata.creationTimestamp
+    - name: Node
+      type: string
+      description: Name of the node where the PodVolumeBackup is processed
+      jsonPath: .status.node
+    - name: Uploader
+      type: string
+      description: The type of the uploader to handle data transfer
+      jsonPath: .spec.uploaderType
+  conversion:
+    strategy: None

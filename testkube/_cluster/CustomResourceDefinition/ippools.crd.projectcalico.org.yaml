@@ -1,0 +1,71 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: ippools.crd.projectcalico.org
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+spec:
+  group: crd.projectcalico.org
+  names:
+    plural: ippools
+    singular: ippool
+    kind: IPPool
+    listKind: IPPoolList
+  scope: Cluster
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            required:
+            - cidr
+            properties:
+              allowedUses:
+                type: array
+                items:
+                  type: string
+              assignmentMode:
+                type: string
+                enum:
+                - Automatic
+                - Manual
+              blockSize:
+                type: integer
+              cidr:
+                type: string
+              disableBGPExport:
+                type: boolean
+              disabled:
+                type: boolean
+              ipip:
+                type: object
+                properties:
+                  enabled:
+                    type: boolean
+                  mode:
+                    type: string
+              ipipMode:
+                type: string
+              namespaceSelector:
+                type: string
+              nat-outgoing:
+                type: boolean
+              natOutgoing:
+                type: boolean
+              nodeSelector:
+                type: string
+              vxlanMode:
+                type: string
+  conversion:
+    strategy: None

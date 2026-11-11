@@ -1,0 +1,20 @@
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  finalizers:
+  - cephblockpool.ceph.rook.io
+  name: replicapool
+  namespace: rook-ceph
+spec:
+  application: ''
+  erasureCoded:
+    codingChunks: 0
+    dataChunks: 0
+  failureDomain: osd
+  mirroring: {}
+  quotas: {}
+  replicated:
+    requireSafeReplicaSize: true
+    size: 3
+  statusCheck:
+    mirror: {}

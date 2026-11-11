@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tigera-operator
+  labels:
+    kubernetes.io/metadata.name: tigera-operator
+spec:
+  finalizers:
+  - kubernetes

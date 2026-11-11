@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: myapachecontainer
+  namespace: default
+  labels:
+    instanceId: '35'
+    instanceType: apachesberner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      instanceId: '35'
+      instanceType: apachesberner
+  template:
+    metadata:
+      labels:
+        instanceId: '35'
+        instanceType: apachesberner
+    spec:
+      volumes:
+      - name: logs
+        emptyDir: {}
+      containers:
+      - name: apache-35
+        image: registry.morpheusdata.com/library/apache:2.4-morph.0.1
+        ports:
+        - containerPort: 443
+          protocol: TCP
+        env:
+        - name: IP_INTERNAL
+          value: 10.6.208.16
+        - name: IP_PUBLIC
+          value: 10.6.208.16
+        - name: HOST_INTERNAL
+          value: container485
+        - name: HOST_EXTERNAL
+          value: myapachecontainer
+        - name: INSTANCE_HOSTNAME
+          value: myapachecontainer
+        - name: PORT_443
+          value: '30051'
+        resources:
+          limits:
+            memory: 128Mi
+          requests:
+            memory: 128Mi
+        volumeMounts:
+        - name: apache-data
+          mountPath: /var/www
+        - name: logs
+          mountPath: /var/log/apache2
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+      - name: morpheus-registry-morpheusdata-com
+      schedulerName: default-scheduler
+  volumeClaimTemplates:
+  - kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: apache-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: '1073741824'
+      storageClassName: rook-ceph-block
+      volumeMode: Filesystem
+    status:
+      phase: Pending
+  serviceName: ''
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
+  revisionHistoryLimit: 10
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Retain
+    whenScaled: Retain

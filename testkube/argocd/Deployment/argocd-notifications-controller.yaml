@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-notifications-controller
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: notifications-controller
+    app.kubernetes.io/name: argocd-notifications-controller
+    app.kubernetes.io/part-of: argocd
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: argocd-notifications-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: argocd-notifications-controller
+    spec:
+      volumes:
+      - name: tls-certs
+        configMap:
+          name: argocd-tls-certs-cm
+          defaultMode: 420
+      - name: argocd-repo-server-tls
+        secret:
+          secretName: argocd-repo-server-tls
+          items:
+          - key: tls.crt
+            path: tls.crt
+          - key: tls.key
+            path: tls.key
+          - key: ca.crt
+            path: ca.crt
+          defaultMode: 420
+          optional: true
+      containers:
+      - name: argocd-notifications-controller
+        image: quay.io/argoproj/argocd:v3.4.5
+        args:
+        - /usr/local/bin/argocd-notifications
+        workingDir: /app
+        env:
+        - name: ARGOCD_NOTIFICATIONS_CONTROLLER_LOGFORMAT
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: notificationscontroller.log.format
+              optional: true
+        - name: ARGOCD_NOTIFICATIONS_CONTROLLER_LOGLEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: notificationscontroller.log.level
+              optional: true
+        - name: ARGOCD_NOTIFICATION_CONTROLLER_PROCESSORS_COUNT
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: notificationscontroller.processors.count
+              optional: true
+        - name: ARGOCD_LOG_FORMAT_TIMESTAMP
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: log.format.timestamp
+              optional: true
+        - name: ARGOCD_APPLICATION_NAMESPACES
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: application.namespaces
+              optional: true
+        - name: ARGOCD_NOTIFICATION_CONTROLLER_SELF_SERVICE_NOTIFICATION_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: notificationscontroller.selfservice.enabled
+              optional: true
+        - name: ARGOCD_NOTIFICATION_CONTROLLER_REPO_SERVER_PLAINTEXT
+          valueFrom:
+            configMapKeyRef:
+              name: argocd-cmd-params-cm
+              key: notificationscontroller.repo.server.plaintext
+              optional: true
+        resources: {}
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /app/config/tls
+        - name: argocd-repo-server-tls
+          mountPath: /app/config/reposerver/tls
+        livenessProbe:
+          tcpSocket:
+            port: 9001
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        imagePullPolicy: Always
+        securityContext:
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: argocd-notifications-controller
+      serviceAccount: argocd-notifications-controller
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

@@ -1,0 +1,92 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: volumesnapshotlocations.velero.io
+  labels:
+    component: velero
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+spec:
+  group: velero.io
+  names:
+    plural: volumesnapshotlocations
+    singular: volumesnapshotlocation
+    shortNames:
+    - vsl
+    kind: VolumeSnapshotLocation
+    listKind: VolumeSnapshotLocationList
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: VolumeSnapshotLocation is a location where Velero stores volume snapshots.
+        type: object
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: VolumeSnapshotLocationSpec defines the specification for a Velero VolumeSnapshotLocation.
+            type: object
+            required:
+            - provider
+            properties:
+              config:
+                description: Config is for provider-specific configuration fields.
+                type: object
+                additionalProperties:
+                  type: string
+              credential:
+                description: Credential contains the credential information intended to be used with this location
+                type: object
+                required:
+                - key
+                properties:
+                  key:
+                    description: The key of the secret to select from.  Must be a valid secret key.
+                    type: string
+                  name:
+                    description: |-
+                      Name of the referent.
+                      This field is effectively required, but due to backwards compatibility is
+                      allowed to be empty. Instances of this type with an empty value here are
+                      almost certainly wrong.
+                      More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                    type: string
+                    default: ''
+                  optional:
+                    description: Specify whether the Secret or its key must be defined
+                    type: boolean
+                x-kubernetes-map-type: atomic
+              provider:
+                description: Provider is the provider of the volume storage.
+                type: string
+          status:
+            description: VolumeSnapshotLocationStatus describes the current status of a Velero VolumeSnapshotLocation.
+            type: object
+            properties:
+              phase:
+                description: VolumeSnapshotLocationPhase is the lifecycle phase of a Velero VolumeSnapshotLocation.
+                type: string
+                enum:
+                - Available
+                - Unavailable
+  conversion:
+    strategy: None

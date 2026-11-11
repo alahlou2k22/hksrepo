@@ -1,0 +1,44 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: ipamhandles.crd.projectcalico.org
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+spec:
+  group: crd.projectcalico.org
+  names:
+    plural: ipamhandles
+    singular: ipamhandle
+    kind: IPAMHandle
+    listKind: IPAMHandleList
+  scope: Cluster
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            required:
+            - block
+            - handleID
+            properties:
+              block:
+                type: object
+                additionalProperties:
+                  type: integer
+              deleted:
+                type: boolean
+              handleID:
+                type: string
+  conversion:
+    strategy: None

@@ -1,0 +1,86 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: serverstatusrequests.velero.io
+  labels:
+    component: velero
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+spec:
+  group: velero.io
+  names:
+    plural: serverstatusrequests
+    singular: serverstatusrequest
+    shortNames:
+    - ssr
+    kind: ServerStatusRequest
+    listKind: ServerStatusRequestList
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        description: |-
+          ServerStatusRequest is a request to access current status information about
+          the Velero server.
+        type: object
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ServerStatusRequestSpec is the specification for a ServerStatusRequest.
+            type: object
+          status:
+            description: ServerStatusRequestStatus is the current status of a ServerStatusRequest.
+            type: object
+            properties:
+              phase:
+                description: Phase is the current lifecycle phase of the ServerStatusRequest.
+                type: string
+                enum:
+                - New
+                - Processed
+              plugins:
+                description: Plugins list information about the plugins running on the Velero server
+                type: array
+                items:
+                  description: PluginInfo contains attributes of a Velero plugin
+                  type: object
+                  required:
+                  - kind
+                  - name
+                  properties:
+                    kind:
+                      type: string
+                    name:
+                      type: string
+                nullable: true
+              processedTimestamp:
+                description: |-
+                  ProcessedTimestamp is when the ServerStatusRequest was processed
+                  by the ServerStatusRequestController.
+                type: string
+                format: date-time
+                nullable: true
+              serverVersion:
+                description: ServerVersion is the Velero server version.
+                type: string
+  conversion:
+    strategy: None

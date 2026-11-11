@@ -1,0 +1,48 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: blockaffinities.crd.projectcalico.org
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.18.0
+spec:
+  group: crd.projectcalico.org
+  names:
+    plural: blockaffinities
+    singular: blockaffinity
+    kind: BlockAffinity
+    listKind: BlockAffinityList
+  scope: Cluster
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+            required:
+            - cidr
+            - deleted
+            - node
+            - state
+            properties:
+              cidr:
+                type: string
+              deleted:
+                type: string
+              node:
+                type: string
+              state:
+                type: string
+              type:
+                type: string
+  conversion:
+    strategy: None

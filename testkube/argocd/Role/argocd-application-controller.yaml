@@ -1,0 +1,48 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argocd-application-controller
+  namespace: argocd
+  labels:
+    app.kubernetes.io/component: application-controller
+    app.kubernetes.io/name: argocd-application-controller
+    app.kubernetes.io/part-of: argocd
+rules:
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - ''
+  resources:
+  - secrets
+  - configmaps
+- verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+  apiGroups:
+  - argoproj.io
+  resources:
+  - applications
+  - applicationsets
+  - appprojects
+- verbs:
+  - create
+  - list
+  apiGroups:
+  - ''
+  resources:
+  - events
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - apps
+  resources:
+  - deployments

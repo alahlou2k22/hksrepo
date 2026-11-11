@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: velero
+  namespace: velero
+  labels:
+    app.kubernetes.io/instance: velero
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: velero
+    app.kubernetes.io/version: 1.18.2
+    component: velero
+    helm.sh/chart: velero-12.2.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: velero
+      app.kubernetes.io/name: velero
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: velero
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: velero
+        app.kubernetes.io/version: 1.18.2
+        helm.sh/chart: velero-12.2.1
+        name: velero
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: '8085'
+        prometheus.io/scrape: 'true'
+    spec:
+      volumes:
+      - name: plugins
+        emptyDir: {}
+      - name: scratch
+        emptyDir: {}
+      initContainers:
+      - name: velero-plugin-for-aws
+        image: velero/velero-plugin-for-aws:v1.14.4
+        resources: {}
+        volumeMounts:
+        - name: plugins
+          mountPath: /target
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      containers:
+      - name: velero
+        image: docker.io/velero/velero:v1.18.4
+        command:
+        - /velero
+        args:
+        - server
+        - --uploader-type=kopia
+        - --repo-maintenance-job-configmap=velero-repo-maintenance
+        ports:
+        - name: http-monitoring
+          containerPort: 8085
+          protocol: TCP
+        env:
+        - name: VELERO_SCRATCH_DIR
+          value: /scratch
+        - name: VELERO_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        - name: LD_LIBRARY_PATH
+          value: /plugins
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 50m
+            memory: 128Mi
+        volumeMounts:
+        - name: plugins
+          mountPath: /plugins
+        - name: scratch
+          mountPath: /scratch
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: http-monitoring
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 5
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: http-monitoring
+            scheme: HTTP
+          initialDelaySeconds: 10
+          timeoutSeconds: 5
+          periodSeconds: 30
+          successThreshold: 1
+          failureThreshold: 5
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 3600
+      dnsPolicy: ClusterFirst
+      serviceAccountName: velero-server
+      serviceAccount: velero-server
+      automountServiceAccountToken: true
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: Recreate
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

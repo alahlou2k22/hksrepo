@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapachecontainer-https
+  namespace: default
+spec:
+  ports:
+  - protocol: TCP
+    port: 443
+    targetPort: 443
+    nodePort: 30051
+  selector:
+    instanceId: '35'
+  type: NodePort
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  internalTrafficPolicy: Cluster

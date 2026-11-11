@@ -1,0 +1,46 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rook-ceph-mgr-cluster
+  labels:
+    app.kubernetes.io/name: rook-ceph
+    app.kubernetes.io/part-of: rook-ceph-operator
+    operator: rook
+    storage-backend: ceph
+rules:
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - ''
+  resources:
+  - configmaps
+  - nodes
+  - persistentvolumes
+- verbs:
+  - create
+  - patch
+  - list
+  - get
+  - watch
+  apiGroups:
+  - ''
+  resources:
+  - events
+- verbs:
+  - create
+  - patch
+  - update
+  apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses

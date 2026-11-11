@@ -1,0 +1,40 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: rook-ceph-osd
+  namespace: rook-ceph
+  labels:
+    app.kubernetes.io/name: rook-ceph
+    app.kubernetes.io/part-of: rook-ceph-operator
+    operator: rook
+    storage-backend: ceph
+rules:
+- verbs:
+  - get
+  - update
+  apiGroups:
+  - ''
+  resources:
+  - secrets
+- verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+  apiGroups:
+  - ''
+  resources:
+  - configmaps
+- verbs:
+  - get
+  - list
+  - create
+  - update
+  - delete
+  apiGroups:
+  - ceph.rook.io
+  resources:
+  - cephclusters
+  - cephclusters/finalizers

@@ -1,0 +1,99 @@
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  finalizers:
+  - cephcluster.ceph.rook.io
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  cephVersion:
+    image: quay.io/ceph/ceph:v19.2.3
+  cleanupPolicy:
+    sanitizeDisks:
+      dataSource: zero
+      iteration: 1
+      method: quick
+    wipeDevicesFromOtherClusters: false
+  crashCollector: {}
+  csi:
+    cephfs: {}
+    readAffinity:
+      enabled: false
+  dashboard:
+    enabled: true
+    ssl: true
+  dataDirHostPath: /var/lib/rook
+  disruptionManagement:
+    managePodBudgets: true
+    osdMaintenanceTimeout: 30
+  external: {}
+  healthCheck:
+    daemonHealth:
+      mon:
+        interval: 45s
+      osd:
+        interval: 1m0s
+      status:
+        interval: 1m0s
+    livenessProbe:
+      mgr: {}
+      mon: {}
+      osd: {}
+    startupProbe:
+      mgr: {}
+      mon: {}
+      osd: {}
+  logCollector:
+    enabled: true
+    maxLogSize: 500M
+    periodicity: daily
+  mgr:
+    count: 2
+    modules:
+    - enabled: true
+      name: rook
+      settings: {}
+  mon:
+    count: 3
+  monitoring: {}
+  network:
+    connections:
+      compression: {}
+      encryption: {}
+    multiClusterService: {}
+  placement:
+    osd:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: ceph-storage
+              operator: In
+              values:
+              - enabled
+  priorityClassNames:
+    mgr: system-cluster-critical
+    mon: system-node-critical
+    osd: system-node-critical
+  resources:
+    mon:
+      limits:
+        memory: 2Gi
+      requests:
+        cpu: 100m
+        memory: 512Mi
+  security:
+    cephx:
+      csi: {}
+      daemon: {}
+      rbdMirrorPeer: {}
+    keyRotation:
+      enabled: false
+    kms: {}
+  storage:
+    flappingRestartIntervalHours: 0
+    migration: {}
+    store: {}
+    useAllDevices: true
+    useAllNodes: true
+  waitTimeoutForHealthyOSDInMinutes: 10

@@ -1,0 +1,184 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cephfs-external-provisioner-runner
+  labels:
+    app.kubernetes.io/name: rook-ceph
+    app.kubernetes.io/part-of: rook-ceph-operator
+    operator: rook
+    storage-backend: ceph
+rules:
+- verbs:
+  - get
+  - list
+  apiGroups:
+  - ''
+  resources:
+  - secrets
+- verbs:
+  - get
+  apiGroups:
+  - ''
+  resources:
+  - configmaps
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - ''
+  resources:
+  - nodes
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - storage.k8s.io
+  resources:
+  - csinodes
+- verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete
+  - patch
+  apiGroups:
+  - ''
+  resources:
+  - persistentvolumes
+- verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+  apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - storage.k8s.io
+  resources:
+  - storageclasses
+- verbs:
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  apiGroups:
+  - ''
+  resources:
+  - events
+- verbs:
+  - create
+  - patch
+  - update
+  apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+- verbs:
+  - get
+  - list
+  - watch
+  - patch
+  apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments
+- verbs:
+  - patch
+  apiGroups:
+  - storage.k8s.io
+  resources:
+  - volumeattachments/status
+- verbs:
+  - patch
+  apiGroups:
+  - ''
+  resources:
+  - persistentvolumeclaims/status
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshots
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotclasses
+- verbs:
+  - get
+  - list
+  - watch
+  - patch
+  - update
+  apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotcontents
+- verbs:
+  - update
+  - patch
+  apiGroups:
+  - snapshot.storage.k8s.io
+  resources:
+  - volumesnapshotcontents/status
+- verbs:
+  - get
+  - list
+  - watch
+  apiGroups:
+  - groupsnapshot.storage.k8s.io
+  resources:
+  - volumegroupsnapshotclasses
+- verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  apiGroups:
+  - groupsnapshot.storage.k8s.io
+  resources:
+  - volumegroupsnapshotcontents
+- verbs:
+  - update
+  - patch
+  apiGroups:
+  - groupsnapshot.storage.k8s.io
+  resources:
+  - volumegroupsnapshotcontents/status
+- verbs:
+  - get
+  apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+- verbs:
+  - create
+  apiGroups:
+  - ''
+  resources:
+  - serviceaccounts/token
+- verbs:
+  - create
+  apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews

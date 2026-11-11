@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: velero-repo-maintenance
+  namespace: velero
+  labels:
+    app.kubernetes.io/instance: velero
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: velero
+    helm.sh/chart: velero-12.2.1
+data:
+  global: |
+    {
+      "keepLatestMaintenanceJobs": 3
+    }

@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tigera-operator
+  namespace: tigera-operator
+  labels:
+    k8s-app: tigera-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: tigera-operator
+  template:
+    metadata:
+      labels:
+        k8s-app: tigera-operator
+        name: tigera-operator
+    spec:
+      volumes:
+      - name: var-lib-calico
+        hostPath:
+          path: /var/lib/calico
+          type: ''
+      initContainers:
+      - name: cleanup-old-resources
+        image: docker.io/library/busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set +e
+          echo "=== Pre-operator cleanup ==="
+          KUBECTL="nsenter -t 1 -m -u -i -n -- kubectl --kubeconfig=/etc/kubernetes/admin.conf"
+
+          # 1. Delete csi-node-driver from BOTH namespaces (immutable selector fix)
+          #    This is the ONLY resource the operator cannot handle itself
+          echo "Deleting csi-node-driver DaemonSets..."
+          $KUBECTL delete daemonset csi-node-driver -n calico-system --ignore-not-found=true
+          $KUBECTL delete daemonset csi-node-driver -n kube-system --ignore-not-found=true
+          $KUBECTL delete csidriver csi.tigera.io --ignore-not-found=true
+
+          # 2. Delete calicoctl (standalone tool, not part of migration)
+          echo "Deleting calicoctl..."
+          $KUBECTL delete pod calicoctl -n kube-system --ignore-not-found=true
+          $KUBECTL delete serviceaccount calicoctl -n kube-system --ignore-not-found=true
+          $KUBECTL delete clusterrole calicoctl --ignore-not-found=true
+          $KUBECTL delete clusterrolebinding calicoctl --ignore-not-found=true
+
+          # 3. Patch IPPool ownership (patch, NOT delete)
+          echo "Patching IPPool for operator adoption..."
+          $KUBECTL annotate ippools --all projectcalico.org/metadata- --overwrite 2>/dev/null || true
+          $KUBECTL label ippools --all app.kubernetes.io/managed-by=tigera-operator --overwrite 2>/dev/null || true
+
+          # 4. Clean TigeraStatus for fresh operator reporting
+          echo "Cleaning TigeraStatus..."
+          $KUBECTL delete tigerastatus calico --ignore-not-found=true 2>/dev/null || true
+          $KUBECTL delete tigerastatus ippools --ignore-not-found=true 2>/dev/null || true
+
+          echo "=== Pre-operator cleanup complete ==="
+          exit 0
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          privileged: true
+      containers:
+      - name: tigera-operator
+        image: quay.io/tigera/operator:v1.40.8
+        command:
+        - operator
+        args:
+        - -manage-crds=true
+        envFrom:
+        - configMapRef:
+            name: kubernetes-services-endpoint
+            optional: true
+        env:
+        - name: WATCH_NAMESPACE
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: tigera-operator
+        - name: TIGERA_OPERATOR_INIT_IMAGE_VERSION
+          value: master
+        resources: {}
+        volumeMounts:
+        - name: var-lib-calico
+          readOnly: true
+          mountPath: /var/lib/calico
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60
+      dnsPolicy: ClusterFirstWithHostNet
+      nodeSelector:
+        kubernetes.io/os: linux
+      serviceAccountName: tigera-operator
+      serviceAccount: tigera-operator
+      hostNetwork: true
+      hostPID: true
+      securityContext: {}
+      imagePullSecrets:
+      - name: default-docker-secret
+      schedulerName: default-scheduler
+      tolerations:
+      - operator: Exists
+        effect: NoExecute
+      - operator: Exists
+        effect: NoSchedule
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
